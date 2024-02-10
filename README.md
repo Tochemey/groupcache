@@ -280,7 +280,6 @@ To use the NATS discovery provider one needs to provide the following:
 
 - `NATS Server Address`: the NATS Server address
 - `NATS Subject`: the NATS subject to use
-- `Actor System Name`: the actor system name
 - `Application Name`: the application name
 
 ```go
