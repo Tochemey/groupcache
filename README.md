@@ -26,7 +26,7 @@ A modified version of [group cache](https://github.com/golang/groupcache) with s
 - `context.Context`, [go modules](https://github.com/golang/go/wiki/Modules), 
 - explicit key removal and expiration. 
 - logger interface to add custom logging framework.
-- upgrade the protobuf API
+- upgrade the protobuf API. This is not backward compatible with previous version of groupcache.
 - service discovery
 - cluster capability. With the help of service discovery starting and stopping the cluster is a breeze now.
 - See the `CHANGELOG` for a complete list of modifications.
