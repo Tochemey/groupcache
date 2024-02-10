@@ -32,23 +32,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	pb "github.com/mailgun/groupcache/v2/groupcachepb"
-	"github.com/mailgun/groupcache/v2/lru"
-	"github.com/mailgun/groupcache/v2/singleflight"
-	"github.com/sirupsen/logrus"
+	pb "github.com/tochemey/groupcache/v2/groupcachepb"
+	"github.com/tochemey/groupcache/v2/log"
+	"github.com/tochemey/groupcache/v2/lru"
+	"github.com/tochemey/groupcache/v2/singleflight"
 )
-
-var logger Logger
-
-// SetLogger - this is legacy to provide backwards compatibility with logrus.
-func SetLogger(log *logrus.Entry) {
-	logger = LogrusLogger{Entry: log}
-}
-
-// SetLoggerFromLogger - set the logger to an implementation of the Logger interface
-func SetLoggerFromLogger(log Logger) {
-	logger = log
-}
 
 // A Getter loads data for a key.
 type Getter interface {
@@ -201,6 +189,9 @@ type Group struct {
 
 	// Stats are statistics on the group.
 	Stats Stats
+
+	// specifies the logger
+	logger log.Logger
 }
 
 // flightGroup is defined as an interface which flightgroup.Group
@@ -406,13 +397,12 @@ func (g *Group) load(ctx context.Context, key string, dest Sink) (value ByteView
 				return nil, err
 			}
 
-			if logger != nil {
-				logger.Error().
-					WithFields(map[string]interface{}{
-						"err":      err,
-						"key":      key,
-						"category": "groupcache",
-					}).Printf("error retrieving key from peer '%s'", peer.GetURL())
+			if g.logger != nil {
+				g.logger.
+					With("err", err).
+					With("key", key).
+					With("category", "groupcache").
+					Errorf("error retrieving key from peer '%s'", peer.GetURL())
 			}
 
 			g.Stats.PeerErrors.Add(1)
@@ -449,8 +439,8 @@ func (g *Group) getLocally(ctx context.Context, key string, dest Sink) (ByteView
 
 func (g *Group) getFromPeer(ctx context.Context, peer ProtoGetter, key string) (ByteView, error) {
 	req := &pb.GetRequest{
-		Group: &g.name,
-		Key:   &key,
+		Group: g.name,
+		Key:   key,
 	}
 	res := &pb.GetResponse{}
 	err := peer.Get(ctx, req, res)
@@ -480,8 +470,8 @@ func (g *Group) setFromPeer(ctx context.Context, peer ProtoGetter, k string, v [
 	}
 	req := &pb.SetRequest{
 		Expire: &expire,
-		Group:  &g.name,
-		Key:    &k,
+		Group:  g.name,
+		Key:    k,
 		Value:  v,
 	}
 	return peer.Set(ctx, req)
@@ -489,8 +479,8 @@ func (g *Group) setFromPeer(ctx context.Context, peer ProtoGetter, k string, v [
 
 func (g *Group) removeFromPeer(ctx context.Context, peer ProtoGetter, key string) error {
 	req := &pb.GetRequest{
-		Group: &g.name,
-		Key:   &key,
+		Group: g.name,
+		Key:   key,
 	}
 	return peer.Remove(ctx, req)
 }

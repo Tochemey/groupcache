@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mailgun/groupcache/v2"
+	"github.com/tochemey/groupcache/v2"
 )
 
 var store = map[string]string{}

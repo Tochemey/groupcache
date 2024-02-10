@@ -1,12 +1,11 @@
-package groupcache_test
+package groupcache
 
 import (
 	"context"
 	"fmt"
+
 	"log"
 	"time"
-
-	"github.com/mailgun/groupcache/v2"
 )
 
 func ExampleUsage() {
@@ -33,8 +32,8 @@ func ExampleUsage() {
 	*/
 
 	// Create a new group cache with a max cache size of 3MB
-	group := groupcache.NewGroup("users", 3000000, groupcache.GetterFunc(
-		func(ctx context.Context, id string, dest groupcache.Sink) error {
+	group := NewGroup("users", 3000000, GetterFunc(
+		func(ctx context.Context, id string, dest Sink) error {
 
 			// In a real scenario we might fetch the value from a database.
 			/*if user, err := fetchUserFromMongo(ctx, id); err != nil {
@@ -61,7 +60,7 @@ func ExampleUsage() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	if err := group.Get(ctx, "12345", groupcache.ProtoSink(&user)); err != nil {
+	if err := group.Get(ctx, "12345", ProtoSink(&user)); err != nil {
 		log.Fatal(err)
 	}
 

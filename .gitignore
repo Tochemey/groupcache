@@ -1,3 +1,11 @@
 *~
 .idea/
 .DS_Store
+Thumbs.db
+
+.tools/
+.vscode/
+*.iml
+*.so
+coverage.*
+vendor

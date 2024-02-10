@@ -1,16 +1,19 @@
 # groupcache
 
-A modified version of [group cache](https://github.com/golang/groupcache) with
-support for `context.Context`, [go modules](https://github.com/golang/go/wiki/Modules),
-and explicit key removal and expiration. See the `CHANGELOG` for a complete list of 
-modifications.
+A modified version of [group cache](https://github.com/golang/groupcache) with support for:
+- `context.Context`, [go modules](https://github.com/golang/go/wiki/Modules), 
+- explicit key removal and expiration. 
+- service discovery. One can add a custom service discovery. At the moment the following providers are implemented:
+    - the [kubernetes](https://kubernetes.io/docs/home/) [api integration](./discovery/kubernetes) is fully functional
+    - the [mDNS](https://datatracker.ietf.org/doc/html/rfc6762) and [DNS-SD](https://tools.ietf.org/html/rfc6763) [api integration](./discovery/mdns)
+- cluster capability. With the help of service discovery starting and stopping the cluster is a breeze now.
+- See the `CHANGELOG` for a complete list of modifications.
 
 ## Summary
 
-groupcache is a caching and cache-filling library, intended as a
-replacement for memcached in many cases.
+groupcache is a caching and cache-filling library, intended as a replacement for memcached in many cases.
 
-For API docs and examples, see http://godoc.org/github.com/mailgun/groupcache/v2
+For API docs and examples, see http://godoc.org/github.com/Tochemey/groupcache/v2
 
    
 ### Modifications from original library
