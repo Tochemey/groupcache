@@ -38,7 +38,7 @@ import (
 const (
 	Namespace          string = "namespace"  // Namespace specifies the kubernetes namespace
 	ApplicationName           = "app_name"   // ApplicationName specifies the application name.
-	GroupCachePortName        = "cache-port" // GroupCachePortName specifies the group cache port name
+	GroupCachePortName        = "group-port" // GroupCachePortName specifies the group cache port name
 )
 
 // option defines the k8 discovery option
@@ -175,9 +175,9 @@ func (d *Discovery) Deregister() error {
 
 // Watch returns event based upon node lifecycle
 func (d *Discovery) Watch(ctx context.Context) (<-chan discovery.Event, error) {
-	// first check whether the actor system has started
+	// first check whether the discovery provider is running
 	if !d.initialized.Load() {
-		return nil, errors.New("kubernetes discovery engine not initialized")
+		return nil, discovery.ErrNotInitialized
 	}
 	// run the watcher
 	go d.watchPods()
@@ -297,7 +297,7 @@ func (d *Discovery) podToNode(pod *corev1.Pod) *discovery.Node {
 			}
 
 			// set the node
-			node = discovery.NewNode(pod.GetName(), pod.Status.PodIP, uint32(port.ContainerPort), pod.Status.StartTime.Time.UnixMilli())
+			node = discovery.NewNode(pod.GetName(), pod.Status.PodIP, uint32(port.ContainerPort))
 			break
 		}
 	}

@@ -51,9 +51,8 @@ func Self() (*Node, error) {
 
 	// create the host node
 	return &Node{
-		name:     cfg.Name,
-		host:     cfg.Host,
-		port:     cfg.GroupPort,
-		birthday: 0,
+		name: cfg.Name,
+		host: cfg.Host,
+		port: cfg.GroupPort,
 	}, nil
 }

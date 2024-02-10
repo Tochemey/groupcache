@@ -30,8 +30,6 @@ type Node struct {
 	host string
 	// port
 	port uint32
-	// birthday
-	birthday int64
 }
 
 // Name returns the Node name
@@ -39,7 +37,7 @@ func (x Node) Name() string {
 	return x.name
 }
 
-// Self returns the peer host
+// Host returns the peer host
 func (x Node) Host() string {
 	return x.host
 }
@@ -49,18 +47,12 @@ func (x Node) Port() uint32 {
 	return x.port
 }
 
-// Birthday returns the Node date of birth
-func (x Node) Birthday() int64 {
-	return x.birthday
-}
-
 // NewNode creates an instance of Node
-func NewNode(name, host string, port uint32, dob int64) *Node {
+func NewNode(name, host string, port uint32) *Node {
 	return &Node{
-		name:     name,
-		host:     host,
-		port:     port,
-		birthday: dob,
+		name: name,
+		host: host,
+		port: port,
 	}
 }
 
