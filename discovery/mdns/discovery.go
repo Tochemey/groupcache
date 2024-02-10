@@ -32,7 +32,7 @@ const (
 	ServiceName = "name"
 	Service     = "service"
 	Domain      = "domain"
-	Port        = "port"
+	Port        = "group-port"
 	IPv6        = "ipv6"
 )
 
@@ -225,9 +225,9 @@ func (d *Discovery) SetConfig(config discovery.Config) error {
 
 // Watch returns event based upon node lifecycle
 func (d *Discovery) Watch(ctx context.Context) (<-chan discovery.Event, error) {
-	// first check whether the actor system has started
+	// first check whether the discovery provider is running
 	if !d.initialized.Load() {
-		return nil, errors.New("mDNS discovery engine not initialized")
+		return nil, discovery.ErrNotInitialized
 	}
 	// run the watcher
 	go d.watchPods(ctx)
@@ -271,13 +271,13 @@ func (d *Discovery) DiscoverNodes() ([]*discovery.Node, error) {
 		if v6 {
 			// iterate the list of ports
 			for _, addr := range entry.AddrIPv6 {
-				nodes = append(nodes, discovery.NewNode(entry.ServiceInstanceName(), addr.String(), uint32(entry.Port), time.Now().UnixMilli()))
+				nodes = append(nodes, discovery.NewNode(entry.ServiceInstanceName(), addr.String(), uint32(entry.Port)))
 			}
 		}
 
 		// iterate the list of ports
 		for _, addr := range entry.AddrIPv4 {
-			nodes = append(nodes, discovery.NewNode(entry.ServiceInstanceName(), addr.String(), uint32(entry.Port), time.Now().UnixMilli()))
+			nodes = append(nodes, discovery.NewNode(entry.ServiceInstanceName(), addr.String(), uint32(entry.Port)))
 		}
 	}
 	return nodes, nil
@@ -350,10 +350,10 @@ func (d *Discovery) watchPods(ctx context.Context) {
 				return
 			case entry := <-entries:
 				if v6 {
-					discovery.NewNode(entry.ServiceInstanceName(), entry.AddrIPv6[0].String(), uint32(entry.Port), time.Now().UnixMilli())
+					discovery.NewNode(entry.ServiceInstanceName(), entry.AddrIPv6[0].String(), uint32(entry.Port))
 					continue
 				}
-				node := discovery.NewNode(entry.ServiceInstanceName(), entry.AddrIPv4[0].String(), uint32(entry.Port), time.Now().UnixMilli())
+				node := discovery.NewNode(entry.ServiceInstanceName(), entry.AddrIPv4[0].String(), uint32(entry.Port))
 				event := &discovery.NodeAdded{Node: node}
 				// add to the channel
 				d.publicChan <- event

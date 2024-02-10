@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package nats;
+
+option go_package = ".;nats";
+
+// MessageType defines the NATs message type
+enum MessageType {
+  MESSAGE_TYPE_REGISTER = 0;
+  MESSAGE_TYPE_DEREGISTER = 1;
+  MESSAGE_TYPE_REQUEST = 2;
+  MESSAGE_TYPE_RESPONSE = 3;
+}
+
+// Message defines the NATs message
+// used by the discovery provider
+message Message {
+  // Specifies the host name of the client node
+  string host = 1;
+  // Specifies the port of the client node
+  int32 port = 2;
+  // Specifies the client name
+  string name = 3;
+  // Specifies the message type
+  MessageType message_type = 4;
+}

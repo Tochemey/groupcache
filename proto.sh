@@ -7,6 +7,7 @@ set -x
 
 PROTO_DIR=groupcachepb
 PROTO_TEST_DIR=testpb
+NATS_PROTO_DIR=discovery/nats
 
 protoc -I=$PROTO_DIR \
     --go_out=$PROTO_DIR \
@@ -19,3 +20,7 @@ protoc -I=$PROTO_TEST_DIR \
 protoc -I=. \
    --go_out=. \
     example.proto
+
+protoc -I=$NATS_PROTO_DIR \
+    --go_out=$NATS_PROTO_DIR \
+    $NATS_PROTO_DIR/nats.proto
