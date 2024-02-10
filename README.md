@@ -1,6 +1,7 @@
 # groupcache
 
-[![build](https://github.com/Tochemey/groupcache/actions/workflows/on-pull-request.yaml/badge.svg)](https://github.com/Tochemey/groupcache/actions/workflows/on-pull-request.yaml)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Tochemey/groupcache/on-pull-request.yaml?branch=main)](https://github.com/Tochemey/groupcache/actions/workflows/on-pull-request.yaml)
+
 
 A modified version of [group cache](https://github.com/golang/groupcache) with support for:
 - `context.Context`, [go modules](https://github.com/golang/go/wiki/Modules), 
