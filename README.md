@@ -1,11 +1,14 @@
 # groupcache
 
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Tochemey/groupcache/on-pull-request.yaml?branch=main)](https://github.com/Tochemey/groupcache/actions/workflows/on-pull-request.yaml)
+[![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Tochemey/groupcache)](https://go.dev/dl/)
 
 
 A modified version of [group cache](https://github.com/golang/groupcache) with support for:
 - `context.Context`, [go modules](https://github.com/golang/go/wiki/Modules), 
 - explicit key removal and expiration. 
+- logger interface to add custom logging framework.
+- upgrade the protobuf API
 - service discovery. One can add a custom service discovery. At the moment the following providers are implemented:
     - the [kubernetes](https://kubernetes.io/docs/home/) [api integration](./discovery/kubernetes) is fully functional
     - the [mDNS](https://datatracker.ietf.org/doc/html/rfc6762) and [DNS-SD](https://tools.ietf.org/html/rfc6763) [api integration](./discovery/mdns)
