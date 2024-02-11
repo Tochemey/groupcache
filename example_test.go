@@ -10,25 +10,37 @@ import (
 
 func ExampleUsage() {
 	/*
-		// Keep track of peers in our cluster and add our instance to the pool `http://localhost:8080`
-		pool := groupcache.NewHTTPPoolOpts("http://localhost:8080", &groupcache.HTTPPoolOptions{})
+			// Make sure each node running the groupcache has the env vars properly set:
+			// GROUP_PORT, NODE_NAME and NODE_IP
+			// kindly refer to the readme notes.
 
-		// Add more peers to the cluster
-		//pool.Set("http://peer1:8080", "http://peer2:8080")
 
-		server := http.Server{
-			Addr:    "localhost:8080",
-			Handler: pool,
-		}
+			// Create an instance of the discovery server.
+			For instance let us say we are using kubernetes
+			provider := kubernetes.New()
 
-		// Start a HTTP server to listen for peer requests from the groupcache
-		go func() {
-			log.Printf("Serving....\n")
-			if err := server.ListenAndServe(); err != nil {
-				log.Fatal(err)
+			// Create the discovery options
+			For kubernetes we only need the namespace and the application name
+			namespace := "default"
+			application := "users"
+
+			options := discovery.Config{
+		    kubernetes.ApplicationName: application,
+		    kubernetes.Namespace:       namespace,
 			}
-		}()
-		defer server.Shutdown(context.Background())
+
+			// Create an instance of the service discovery
+			serviceDiscovery := discovery.NewServiceDiscovery(provider, options)
+
+			// Create an instance of the cluster
+			ctx := context.Background()
+			cluster := cluster.New(ctx, serviceDiscovery)
+
+			// Start the cluster
+			err := cluster.Start(ctx)
+
+			// Stop the cluster
+			defer cluster.Stop(ctx)
 	*/
 
 	// Create a new group cache with a max cache size of 3MB

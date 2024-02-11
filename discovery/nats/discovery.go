@@ -77,7 +77,7 @@ var _ discovery.Provider = &Discovery{}
 // NewDiscovery returns an instance of the kubernetes discovery provider
 func NewDiscovery(opts ...Option) *Discovery {
 	// create an instance of
-	discovery := &Discovery{
+	d := &Discovery{
 		mu:          sync.Mutex{},
 		initialized: atomic.NewBool(false),
 		registered:  atomic.NewBool(false),
@@ -89,10 +89,10 @@ func NewDiscovery(opts ...Option) *Discovery {
 
 	// apply the various options
 	for _, opt := range opts {
-		opt.Apply(discovery)
+		opt.Apply(d)
 	}
 
-	return discovery
+	return d
 }
 
 // ID returns the discovery provider id
