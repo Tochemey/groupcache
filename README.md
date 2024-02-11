@@ -165,12 +165,12 @@ func ExampleUsage() {
         },
     ))
 
-    var user User
+    user := new(User)
 
     ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*500)
     defer cancel()
 
-    if err := group.Get(ctx, "12345", groupcache.ProtoSink(&user)); err != nil {
+    if err := group.Get(ctx, "12345", groupcache.ProtoSink(user)); err != nil {
         log.Fatal(err)
     }
 
