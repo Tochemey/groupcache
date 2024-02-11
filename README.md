@@ -120,7 +120,7 @@ import (
 func ExampleUsage() {
 
     // NOTE: It is important each node running the groupcache has the env vars properly set:
-    //  GROUP_PORT, NODE_NAME and NODE_IP
+    // GROUP_PORT, NODE_NAME and NODE_IP
     // That the service discovery can properly identify the running instance
 
     // Create an instance of the discovery service.
