@@ -111,10 +111,10 @@ import (
     "log"
     "time"
 
-    "github.com/Tochemey/groupcache/v2"
-    "github.com/Tochemey/groupcache/v2/cluster"
-    "github.com/Tochemey/groupcache/v2/discovery"
-    "github.com/Tochemey/groupcache/v2/discovery/kubernetes"
+    "github.com/tochemey/groupcache/v2"
+    "github.com/tochemey/groupcache/v2/cluster"
+    "github.com/tochemey/groupcache/v2/discovery"
+    "github.com/tochemey/groupcache/v2/discovery/kubernetes"
 )
 
 func ExampleUsage() {
