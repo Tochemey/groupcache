@@ -226,21 +226,27 @@ func (d *Discovery) Register() error {
 			}
 
 		case MessageType_MESSAGE_TYPE_REQUEST:
-			// add logging information
-			d.logger.Infof("received an identification request from peer[name=%s, host=%s, port=%d]",
-				msg.GetName(), msg.GetHost(), msg.GetPort())
-			// send the reply
-			replyMessage := &Message{
-				Host:        d.hostNode.Host(),
-				Port:        int32(d.hostNode.Port()),
-				Name:        d.hostNode.Name(),
-				MessageType: MessageType_MESSAGE_TYPE_RESPONSE,
-			}
+			// create the node found
+			node := discovery.NewNode(msg.GetName(), msg.GetHost(), uint32(msg.GetPort()))
 
-			// send the reply and handle the error
-			if err := d.natsConnection.Publish(reply, replyMessage); err != nil {
-				d.logger.Errorf("failed to reply for identification request from peer[name=%s, host=%s, port=%d]",
+			// exclude self
+			if me != node.Address() {
+				// add logging information
+				d.logger.Infof("received an identification request from peer[name=%s, host=%s, port=%d]",
 					msg.GetName(), msg.GetHost(), msg.GetPort())
+				// send the reply
+				replyMessage := &Message{
+					Host:        d.hostNode.Host(),
+					Port:        int32(d.hostNode.Port()),
+					Name:        d.hostNode.Name(),
+					MessageType: MessageType_MESSAGE_TYPE_RESPONSE,
+				}
+
+				// send the reply and handle the error
+				if err := d.natsConnection.Publish(reply, replyMessage); err != nil {
+					d.logger.Errorf("failed to reply for identification request from peer[name=%s, host=%s, port=%d]",
+						msg.GetName(), msg.GetHost(), msg.GetPort())
+				}
 			}
 		}
 	}
@@ -264,12 +270,6 @@ func (d *Discovery) Deregister() error {
 	d.mu.Lock()
 	// release the lock
 	defer d.mu.Unlock()
-
-	// unregister
-	defer func() {
-		d.registered.Store(false)
-	}()
-
 	// first check whether the discovery provider has been registered or not
 	if !d.registered.Load() {
 		return discovery.ErrNotRegistered
@@ -277,9 +277,15 @@ func (d *Discovery) Deregister() error {
 
 	// shutdown all the subscriptions
 	for _, subscription := range d.subscriptions {
-		// unsubscribe and return when there is an error
-		if err := subscription.Unsubscribe(); err != nil {
-			return err
+		// when subscription is defined
+		if subscription != nil {
+			// check whether the subscription is active or not
+			if subscription.IsValid() {
+				// unsubscribe and return when there is an error
+				if err := subscription.Unsubscribe(); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -293,6 +299,14 @@ func (d *Discovery) Deregister() error {
 			MessageType: MessageType_MESSAGE_TYPE_DEREGISTER,
 		})
 	}
+
+	// set registered to false
+	d.registered.Store(false)
+	// stop the watchers
+	close(d.stopChan)
+	// close the public channel
+	close(d.publicChan)
+
 	return nil
 }
 
@@ -390,25 +404,38 @@ func (d *Discovery) DiscoverNodes() ([]*discovery.Node, error) {
 
 // Close closes the provider
 func (d *Discovery) Close() error {
+	// acquire the lock
+	d.mu.Lock()
+	// release the lock
+	defer d.mu.Unlock()
+
 	// set the initialized to false
 	d.initialized.Store(false)
-	// set registered to false
-	d.registered.Store(false)
-
-	// stop the watchers
-	close(d.stopChan)
-	// close the public channel
-	close(d.publicChan)
 
 	if d.natsConnection != nil {
-		// close all the subscriptions
-		for _, subscription := range d.subscriptions {
-			// unsubscribe and ignore the error
-			_ = subscription.Unsubscribe()
-		}
+		defer func() {
+			// close the underlying connection
+			d.natsConnection.Close()
+			d.natsConnection = nil
+		}()
 
+		// shutdown all the subscriptions
+		for _, subscription := range d.subscriptions {
+			// when subscription is defined
+			if subscription != nil {
+				// check whether the subscription is active or not
+				if subscription.IsValid() {
+					// unsubscribe and return when there is an error
+					if err := subscription.Unsubscribe(); err != nil {
+						return err
+					}
+				}
+			}
+		}
 		// flush all messages
-		return d.natsConnection.Flush()
+		if err := d.natsConnection.Flush(); err != nil {
+			return err
+		}
 	}
 	return nil
 }

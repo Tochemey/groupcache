@@ -307,14 +307,15 @@ func TestDiscovery(t *testing.T) {
 		discoveredNodeAddr = client1.hostNode.Address()
 		require.Equal(t, peers[0].Address(), discoveredNodeAddr)
 
-		// de-register client 2
+		// de-register client 2 but it can see client1
 		require.NoError(t, client2.Deregister())
 		peers, err = client2.DiscoverNodes()
-		require.Error(t, err)
-		assert.EqualError(t, err, discovery.ErrNotRegistered.Error())
-		require.Empty(t, peers)
+		require.NoError(t, err)
+		require.NotEmpty(t, peers)
+		discoveredNodeAddr = client1.hostNode.Address()
+		require.Equal(t, peers[0].Address(), discoveredNodeAddr)
 
-		// client-1 cannot see the deregistered client
+		// client-1 cannot see the deregistered client2
 		peers, err = client1.DiscoverNodes()
 		require.NoError(t, err)
 		require.Empty(t, peers)

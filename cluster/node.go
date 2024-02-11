@@ -21,6 +21,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -78,7 +79,7 @@ type Node struct {
 var _ Interface = &Node{}
 
 // New create an instance of the cluster node
-func New(ctx context.Context, sd discovery.ServiceDiscovery, opts ...Option) (*Node, error) {
+func New(ctx context.Context, sd *discovery.ServiceDiscovery, opts ...Option) (*Node, error) {
 	// create an instance of the Node
 	node := &Node{
 		discoveryProvider: sd.Provider(),
@@ -86,6 +87,7 @@ func New(ctx context.Context, sd discovery.ServiceDiscovery, opts ...Option) (*N
 		logger:            log.DefaultLogger,
 		mu:                &sync.RWMutex{},
 		peers:             goset.NewSet[string](),
+		started:           atomic.NewBool(false),
 	}
 	// apply the various options
 	for _, opt := range opts {
@@ -100,43 +102,10 @@ func New(ctx context.Context, sd discovery.ServiceDiscovery, opts ...Option) (*N
 		return nil, err
 	}
 
-	// set the host startNode
+	// set the host startClusterNode
 	node.self = hostNode
 	// add the host to the list of peers
-	node.peers.Add(hostNode.Address())
-
-	// create an instance of the cache pool
-	node.pool = groupcache.NewHTTPPoolOpts(node.self.Address(), &groupcache.HTTPPoolOptions{
-		Replicas:  node.replicaCount,
-		HashFn:    node.hasher,
-		Transport: nil, // TODO add otel http transport
-		Context: func(request *http.Request) context.Context {
-			return ctx
-		},
-	})
-
-	// set the http server
-	node.server = &http.Server{
-		Addr: node.self.Address(),
-		// The maximum duration for reading the entire request, including the body.
-		// It’s implemented in net/http by calling SetReadDeadline immediately after Accept
-		// ReadTimeout := handler_timeout + ReadHeaderTimeout + wiggle_room
-		ReadTimeout: 3 * time.Second,
-		// ReadHeaderTimeout is the amount of time allowed to read request headers
-		ReadHeaderTimeout: time.Second,
-		// WriteTimeout is the maximum duration before timing out writes of the response.
-		// It is reset whenever a new request’s header is read.
-		// This effectively covers the lifetime of the ServeHTTP handler stack
-		WriteTimeout: time.Second,
-		// IdleTimeout is the maximum amount of time to wait for the next request when keep-alive are enabled.
-		// If IdleTimeout is zero, the value of ReadTimeout is used. Not relevant to request timeouts
-		IdleTimeout: 1200 * time.Second,
-		Handler:     node.pool,
-		// Set the base context to incoming context of the system
-		BaseContext: func(listener net.Listener) context.Context {
-			return ctx
-		},
-	}
+	node.peers.Add(hostNode.PeerURL())
 
 	return node, nil
 }
@@ -152,11 +121,22 @@ func (x *Node) Start(ctx context.Context) error {
 	logger := x.logger
 
 	// add some logging information
-	logger.Infof("Starting GoAkt cluster Node service on (%s)....🤔", x.self.Address())
+	logger.Infof("Starting groupcache cluster node on (%s)....🤔", x.self.Address())
 
 	// no-op when already started
 	if x.started.Load() {
 		return nil
+	}
+
+	// set the service discovery config
+	if err := x.discoveryProvider.SetConfig(x.discoveryOptions); err != nil {
+		// log the error
+		logger.
+			With("discovery", x.discoveryProvider.ID()).
+			Error("unable to set the configuration")
+
+		// return the error
+		return errors.Wrapf(err, "failed to set config for the (%s) service discovery provider", x.discoveryProvider.ID())
 	}
 
 	// initialize the service discovery
@@ -171,17 +151,6 @@ func (x *Node) Start(ctx context.Context) error {
 	}
 
 	// set the service discovery config
-	if err := x.discoveryProvider.SetConfig(x.discoveryOptions); err != nil {
-		// log the error
-		logger.
-			With("discovery", x.discoveryProvider.ID()).
-			Error("unable to set the configuration")
-
-		// return the error
-		return errors.Wrapf(err, "failed to set config for the (%s) service discovery provider", x.discoveryProvider.ID())
-	}
-
-	// set the service discovery config
 	if err := x.discoveryProvider.Register(); err != nil {
 		// log the error
 		logger.
@@ -193,7 +162,7 @@ func (x *Node) Start(ctx context.Context) error {
 	}
 
 	// build the list of addresses
-	addresses := goset.NewSet[string]()
+	peerURLs := goset.NewSet[string]()
 	// let us perform some discovery
 	nodes, err := x.discoveryProvider.DiscoverNodes()
 	// handle the error
@@ -208,14 +177,52 @@ func (x *Node) Start(ctx context.Context) error {
 
 	// build the addresses list
 	for _, node := range nodes {
-		addresses.Add(node.Address())
+		peerURLs.Add(node.PeerURL())
 	}
 
+	// add some debug logger
+	x.logger.Debugf("peers discovered [%s]", strings.Join(peerURLs.ToSlice(), ","))
+
 	// append the list of peers
-	x.peers.Append(addresses.ToSlice()...)
+	x.peers.Append(peerURLs.ToSlice()...)
+
+	// create an instance of the cache pool
+	x.pool = groupcache.NewHTTPPoolOpts(x.self.PeerURL(), &groupcache.HTTPPoolOptions{
+		Replicas: x.replicaCount,
+		HashFn:   x.hasher,
+		Context: func(request *http.Request) context.Context {
+			return ctx
+		},
+	})
+
+	// add some debug logger
+	x.logger.Debugf("node peers pool [%s]", strings.Join(x.peers.ToSlice(), ","))
 
 	// attempt to connect to an existing cluster
 	x.pool.Set(x.peers.ToSlice()...)
+
+	// set the http server
+	x.server = &http.Server{
+		Addr: x.self.Address(),
+		// The maximum duration for reading the entire request, including the body.
+		// It’s implemented in net/http by calling SetReadDeadline immediately after Accept
+		// ReadTimeout := handler_timeout + ReadHeaderTimeout + wiggle_room
+		ReadTimeout: 3 * time.Second,
+		// ReadHeaderTimeout is the amount of time allowed to read request headers
+		ReadHeaderTimeout: time.Second,
+		// WriteTimeout is the maximum duration before timing out writes of the response.
+		// It is reset whenever a new request’s header is read.
+		// This effectively covers the lifetime of the ServeHTTP handler stack
+		WriteTimeout: time.Second,
+		// IdleTimeout is the maximum amount of time to wait for the next request when keep-alive are enabled.
+		// If IdleTimeout is zero, the value of ReadTimeout is used. Not relevant to request timeouts
+		IdleTimeout: 1200 * time.Second,
+		Handler:     x.pool,
+		// Set the base context to incoming context of the system
+		BaseContext: func(listener net.Listener) context.Context {
+			return ctx
+		},
+	}
 
 	// listen and service requests
 	go func() {
@@ -260,15 +267,6 @@ func (x *Node) Stop(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, x.shutdownTimeout)
 	defer cancel()
 
-	// stop the discovery provider
-	if err := x.discoveryProvider.Deregister(); err != nil {
-		x.logger.
-			With("discovery", x.discoveryProvider.ID()).
-			Error("failed to de-register")
-
-		return errors.Wrapf(err, "failed to de-register the (%s) service discovery provider", x.discoveryProvider.ID())
-	}
-
 	// close the discovery provider
 	if err := x.discoveryProvider.Close(); err != nil {
 		x.logger.
@@ -276,6 +274,15 @@ func (x *Node) Stop(ctx context.Context) error {
 			Error("failed to close")
 
 		return errors.Wrapf(err, "failed to close the (%s) service discovery provider", x.discoveryProvider.ID())
+	}
+
+	// stop the discovery provider
+	if err := x.discoveryProvider.Deregister(); err != nil {
+		x.logger.
+			With("discovery", x.discoveryProvider.ID()).
+			Error("failed to de-register")
+
+		return errors.Wrapf(err, "failed to de-register the (%s) service discovery provider", x.discoveryProvider.ID())
 	}
 
 	// stop the server

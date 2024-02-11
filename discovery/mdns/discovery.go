@@ -76,6 +76,7 @@ func NewDiscovery() *Discovery {
 	d := &Discovery{
 		mu:          sync.Mutex{},
 		stopChan:    make(chan struct{}, 1),
+		publicChan:  make(chan discovery.Event, 2),
 		initialized: atomic.NewBool(false),
 		option:      &Option{},
 	}
@@ -156,16 +157,17 @@ func (d *Discovery) Deregister() error {
 		return discovery.ErrNotInitialized
 	}
 
-	// set the initialized to false
-	d.initialized = atomic.NewBool(false)
-
 	// shutdown the registered service
 	if d.server != nil {
 		d.server.Shutdown()
 	}
 
+	// set the initialized to false
+	d.initialized = atomic.NewBool(false)
 	// stop the watchers
 	close(d.stopChan)
+	// close the public channel
+	close(d.publicChan)
 	// return
 	return nil
 }

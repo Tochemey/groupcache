@@ -153,8 +153,8 @@ func TestDiscovery(t *testing.T) {
 		require.Len(t, actual, 2)
 
 		expected := []string{
-			"http://10.0.0.23:3379",
-			"http://10.0.0.24:3379",
+			"10.0.0.23:3379",
+			"10.0.0.24:3379",
 		}
 
 		actualAddresses := goset.NewSet[string]()

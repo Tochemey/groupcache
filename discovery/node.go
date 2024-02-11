@@ -58,5 +58,10 @@ func NewNode(name, host string, port uint32) *Node {
 
 // Address returns the Node address
 func (x Node) Address() string {
+	return net.JoinHostPort(x.host, strconv.Itoa(int(x.port)))
+}
+
+// PeerURL returns the PeerURL
+func (x Node) PeerURL() string {
 	return fmt.Sprintf("http://%s", net.JoinHostPort(x.host, strconv.Itoa(int(x.port))))
 }
