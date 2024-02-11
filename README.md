@@ -124,7 +124,7 @@ func ExampleUsage() {
     // That the service discovery can properly identify the running instance
 
     // Create an instance of the discovery service.
-	// For instance let us use kubernetes
+    // For instance let us use kubernetes
     provider := kubernetes.New()
 
     // Create the discovery options
