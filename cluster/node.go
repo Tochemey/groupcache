@@ -110,7 +110,9 @@ func New(ctx context.Context, sd discovery.ServiceDiscovery, opts ...Option) (*N
 		Replicas:  node.replicaCount,
 		HashFn:    node.hasher,
 		Transport: nil, // TODO add otel http transport
-		Context:   nil,
+		Context: func(request *http.Request) context.Context {
+			return ctx
+		},
 	})
 
 	// set the http server
