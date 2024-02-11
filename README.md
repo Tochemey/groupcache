@@ -112,36 +112,44 @@ import (
     "time"
 
     "github.com/Tochemey/groupcache/v2"
+    "github.com/Tochemey/groupcache/v2/cluster"
+    "github.com/Tochemey/groupcache/v2/discovery"
+    "github.com/Tochemey/groupcache/v2/discovery/kubernetes"
 )
 
 func ExampleUsage() {
 
-    // NOTE: It is important to pass the same peer `http://192.168.1.1:8080` to `NewHTTPPoolOpts`
-    // which is provided to `pool.Set()` so the pool can identify which of the peers is our instance.
-    // The pool will not operate correctly if it can't identify which peer is our instance.
-    
-    // Pool keeps track of peers in our cluster and identifies which peer owns a key.
-    pool := groupcache.NewHTTPPoolOpts("http://192.168.1.1:8080", &groupcache.HTTPPoolOptions{})
+    // NOTE: It is important each node running the groupcache has the env vars properly set:
+    //  GROUP_PORT, NODE_NAME and NODE_IP
+    // That the service discovery can properly identify the running instance
 
-    // Add more peers to the cluster You MUST Ensure our instance is included in this list else
-    // determining who owns the key accross the cluster will not be consistent, and the pool won't
-    // be able to determine if our instance owns the key.
-    pool.Set("http://192.168.1.1:8080", "http://192.168.1.2:8080", "http://192.168.1.3:8080")
+    // Create an instance of the discovery service.
+	// For instance let us use kubernetes
+    provider := kubernetes.New()
 
-    server := http.Server{
-        Addr:    "192.168.1.1:8080",
-        Handler: pool,
+    // Create the discovery options
+    // For kubernetes we only need the namespace and the application name
+    application := "users"
+    namespace := "default"
+	 
+    server := discovery.Config{
+        kubernetes.ApplicationName: application,
+        kubernetes.Namespace:       namespace,
     }
 
-    // Start a HTTP server to listen for peer requests from the groupcache
-    go func() {
-        log.Printf("Serving....\n")
-        if err := server.ListenAndServe(); err != nil {
-            log.Fatal(err)
-        }
-    }()
-    defer server.Shutdown(context.Background())
+    // Create an instance of the service discovery
+    serviceDiscovery := discovery.NewServiceDiscovery(provider, options)
 
+    // Create an instance of the cluster
+    ctx := context.Background()
+    cluster := cluster.New(ctx, serviceDiscovery)
+    
+    // Start the cluster
+    err := cluster.Start(ctx)
+    
+    // Stop the cluster
+    defer cluster.Stop(ctx)
+	 
     // Create a new group cache with a max cache size of 3MB
     group := groupcache.NewGroup("users", 3000000, groupcache.GetterFunc(
         func(ctx context.Context, id string, dest groupcache.Sink) error {

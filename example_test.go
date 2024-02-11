@@ -15,12 +15,12 @@ func ExampleUsage() {
 			// kindly refer to the readme notes.
 
 
-			// Create an instance of the discovery server.
+			// Create an instance of the discovery service.
 			For instance let us say we are using kubernetes
 			provider := kubernetes.New()
 
 			// Create the discovery options
-			For kubernetes we only need the namespace and the application name
+			// For kubernetes we only need the namespace and the application name
 			namespace := "default"
 			application := "users"
 
