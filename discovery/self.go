@@ -53,6 +53,6 @@ func Self() (*Node, error) {
 	return &Node{
 		name: cfg.Name,
 		host: cfg.Host,
-		port: cfg.GroupPort,
+		port: int32(cfg.GroupPort),
 	}, nil
 }
