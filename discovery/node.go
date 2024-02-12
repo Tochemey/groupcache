@@ -29,7 +29,7 @@ type Node struct {
 	// host specifies the discovered node's Host
 	host string
 	// port
-	port uint32
+	port int32
 }
 
 // Name returns the Node name
@@ -43,12 +43,12 @@ func (x Node) Host() string {
 }
 
 // Port returns the Node port number
-func (x Node) Port() uint32 {
+func (x Node) Port() int32 {
 	return x.port
 }
 
 // NewNode creates an instance of Node
-func NewNode(name, host string, port uint32) *Node {
+func NewNode(name, host string, port int32) *Node {
 	return &Node{
 		name: name,
 		host: host,

@@ -273,13 +273,13 @@ func (d *Discovery) DiscoverNodes() ([]*discovery.Node, error) {
 		if v6 {
 			// iterate the list of ports
 			for _, addr := range entry.AddrIPv6 {
-				nodes = append(nodes, discovery.NewNode(entry.ServiceInstanceName(), addr.String(), uint32(entry.Port)))
+				nodes = append(nodes, discovery.NewNode(entry.ServiceInstanceName(), addr.String(), int32(entry.Port)))
 			}
 		}
 
 		// iterate the list of ports
 		for _, addr := range entry.AddrIPv4 {
-			nodes = append(nodes, discovery.NewNode(entry.ServiceInstanceName(), addr.String(), uint32(entry.Port)))
+			nodes = append(nodes, discovery.NewNode(entry.ServiceInstanceName(), addr.String(), int32(entry.Port)))
 		}
 	}
 	return nodes, nil
@@ -352,10 +352,10 @@ func (d *Discovery) watchPods(ctx context.Context) {
 				return
 			case entry := <-entries:
 				if v6 {
-					discovery.NewNode(entry.ServiceInstanceName(), entry.AddrIPv6[0].String(), uint32(entry.Port))
+					discovery.NewNode(entry.ServiceInstanceName(), entry.AddrIPv6[0].String(), int32(entry.Port))
 					continue
 				}
-				node := discovery.NewNode(entry.ServiceInstanceName(), entry.AddrIPv4[0].String(), uint32(entry.Port))
+				node := discovery.NewNode(entry.ServiceInstanceName(), entry.AddrIPv4[0].String(), int32(entry.Port))
 				event := &discovery.NodeAdded{Node: node}
 				// add to the channel
 				d.publicChan <- event

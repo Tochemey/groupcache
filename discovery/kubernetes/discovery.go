@@ -297,7 +297,7 @@ func (d *Discovery) podToNode(pod *corev1.Pod) *discovery.Node {
 			}
 
 			// set the node
-			node = discovery.NewNode(pod.GetName(), pod.Status.PodIP, uint32(port.ContainerPort))
+			node = discovery.NewNode(pod.GetName(), pod.Status.PodIP, port.ContainerPort)
 			break
 		}
 	}

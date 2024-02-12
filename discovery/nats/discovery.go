@@ -195,7 +195,7 @@ func (d *Discovery) Register() error {
 				msg.GetName(), msg.GetHost(), msg.GetPort())
 
 			// create the node found
-			node := discovery.NewNode(msg.GetName(), msg.GetHost(), uint32(msg.GetPort()))
+			node := discovery.NewNode(msg.GetName(), msg.GetHost(), msg.GetPort())
 
 			// get the found peer address
 			addr := node.Address()
@@ -213,7 +213,7 @@ func (d *Discovery) Register() error {
 				msg.GetName(), msg.GetHost(), msg.GetPort())
 
 			// create the node found
-			node := discovery.NewNode(msg.GetName(), msg.GetHost(), uint32(msg.GetPort()))
+			node := discovery.NewNode(msg.GetName(), msg.GetHost(), msg.GetPort())
 
 			// get the found peer address
 			addr := node.Address()
@@ -227,7 +227,7 @@ func (d *Discovery) Register() error {
 
 		case MessageType_MESSAGE_TYPE_REQUEST:
 			// create the node found
-			node := discovery.NewNode(msg.GetName(), msg.GetHost(), uint32(msg.GetPort()))
+			node := discovery.NewNode(msg.GetName(), msg.GetHost(), msg.GetPort())
 
 			// exclude self
 			if me != node.Address() {
@@ -381,7 +381,7 @@ func (d *Discovery) DiscoverNodes() ([]*discovery.Node, error) {
 			}
 
 			// create the node found
-			node := discovery.NewNode(m.GetName(), m.GetHost(), uint32(m.GetPort()))
+			node := discovery.NewNode(m.GetName(), m.GetHost(), m.GetPort())
 
 			// get the found peer address
 			addr := node.Address()
