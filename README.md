@@ -1,7 +1,6 @@
 # groupcache
 
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Tochemey/groupcache/on-pull-request.yaml?branch=main)](https://github.com/Tochemey/groupcache/actions/workflows/on-pull-request.yaml)
-[![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Tochemey/groupcache)](https://go.dev/dl/)
 
 groupcache is a caching and cache-filling library, intended as a replacement for memcached in many cases.
 
