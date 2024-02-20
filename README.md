@@ -108,7 +108,7 @@ func ExampleUsage() {
     application := "users"
     namespace := "default"
 	 
-    server := discovery.Config{
+    options := discovery.Config{
         kubernetes.ApplicationName: application,
         kubernetes.Namespace:       namespace,
     }
