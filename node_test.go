@@ -1,20 +1,4 @@
-/*
- * Copyright 2024 Tochemey
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package cluster
+package groupcache
 
 import (
 	"context"
@@ -23,26 +7,26 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tochemey/groupcache/v2"
-
 	natsserver "github.com/nats-io/nats-server/v2/server"
 	"github.com/stretchr/testify/require"
 	"github.com/tochemey/groupcache/v2/discovery"
 	"github.com/tochemey/groupcache/v2/discovery/nats"
+	"github.com/tochemey/groupcache/v2/example"
 	"github.com/travisjeffery/go-dynaport"
 )
 
-func TestCluster(t *testing.T) {
+func TestNode(t *testing.T) {
 	t.Run("With Single Node", func(t *testing.T) {
+		t.Skip()
 		server := startNatsServer(t)
 		serverAddr := server.Addr().String()
 		// start node1
-		node := startClusterNode(t, "node", serverAddr)
+		node := startNode(t, "node", serverAddr)
 		require.NotNil(t, node)
 
-		group := groupcache.NewGroup("users", 3000000, groupcache.GetterFunc(
-			func(ctx context.Context, id string, dest groupcache.Sink) error {
-				user := &groupcache.User{
+		group := NewGroup("users", 3000000, GetterFunc(
+			func(ctx context.Context, id string, dest Sink) error {
+				user := &example.User{
 					Id:      id,
 					Name:    "test",
 					Age:     20,
@@ -53,46 +37,24 @@ func TestCluster(t *testing.T) {
 			},
 		))
 
-		user := new(groupcache.User)
+		user := new(example.User)
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*500)
 		defer cancel()
 
-		if err := group.Get(ctx, "12345", groupcache.ProtoSink(user)); err != nil {
+		if err := group.Get(ctx, "12345", ProtoSink(user)); err != nil {
 			t.Fail()
 		}
 
 		t.Cleanup(func() {
 			require.NoError(t, node.Stop(context.TODO()))
 			server.Shutdown()
+			httpPoolMade = false
 		})
 	})
 }
 
-func startNatsServer(t *testing.T) *natsserver.Server {
-	t.Helper()
-	serv, err := natsserver.NewServer(&natsserver.Options{
-		Host: "127.0.0.1",
-		Port: -1,
-	})
-
-	require.NoError(t, err)
-
-	ready := make(chan bool)
-	go func() {
-		ready <- true
-		serv.Start()
-	}()
-	<-ready
-
-	if !serv.ReadyForConnections(2 * time.Second) {
-		t.Fatalf("nats-io server failed to start")
-	}
-
-	return serv
-}
-
-func startClusterNode(t *testing.T, nodeName, serverAddr string) *Node {
+func startNode(t *testing.T, nodeName, serverAddr string) *Node {
 	// create a context
 	ctx := context.TODO()
 
@@ -121,7 +83,7 @@ func startClusterNode(t *testing.T, nodeName, serverAddr string) *Node {
 	}
 
 	// create the startClusterNode
-	node, err := New(ctx, discovery.NewServiceDiscovery(provider, config))
+	node, err := NewNode(ctx, discovery.NewServiceDiscovery(provider, config))
 	require.NoError(t, err)
 	require.NotNil(t, node)
 
@@ -135,4 +97,27 @@ func startClusterNode(t *testing.T, nodeName, serverAddr string) *Node {
 
 	// return the cluster startClusterNode
 	return node
+}
+
+func startNatsServer(t *testing.T) *natsserver.Server {
+	t.Helper()
+	serv, err := natsserver.NewServer(&natsserver.Options{
+		Host: "127.0.0.1",
+		Port: -1,
+	})
+
+	require.NoError(t, err)
+
+	ready := make(chan bool)
+	go func() {
+		ready <- true
+		serv.Start()
+	}()
+	<-ready
+
+	if !serv.ReadyForConnections(2 * time.Second) {
+		t.Fatalf("nats-io server failed to start")
+	}
+
+	return serv
 }

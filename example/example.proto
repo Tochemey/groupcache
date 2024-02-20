@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package groupcache;
+package example;
 
-option go_package = ".;groupcache";
+option go_package = ".;example";
 
 message User {
   string id = 1;

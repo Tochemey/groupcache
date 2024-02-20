@@ -1,11 +1,10 @@
 # groupcache
 
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Tochemey/groupcache/on-pull-request.yaml?branch=main)](https://github.com/Tochemey/groupcache/actions/workflows/on-pull-request.yaml)
-[![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Tochemey/groupcache)](https://go.dev/dl/)
 
 groupcache is a caching and cache-filling library, intended as a replacement for memcached in many cases.
 
-For API docs and examples, see http://godoc.org/github.com/Tochemey/groupcache/v2
+For API docs and examples, see http://godoc.org/github.com/tochemey/groupcache/v2
 
 ## Table of Content
 
@@ -22,42 +21,20 @@ For API docs and examples, see http://godoc.org/github.com/Tochemey/groupcache/v
 
 ## Overview
 
-A modified version of [group cache](https://github.com/golang/groupcache) with support for:
-- `context.Context`, [go modules](https://github.com/golang/go/wiki/Modules), 
-- explicit key removal and expiration. 
-- logger interface to add custom logging framework.
-- upgrade the protobuf API. This is not backward compatible with previous versions of groupcache.
+A modified version of [group cache](https://github.com/mailgun/groupcache) with support:
+- upgrade the protobuf API.
 - service discovery
-- cluster capability. With the help of service discovery starting and stopping the cluster is a breeze now.
-- See the `CHANGELOG` for a complete list of modifications.
+- simple logger interface with a default logger based upon uber zap library
    
 ### Modifications from original library
 
-* Support for `context.Context`, [go modules](https://github.com/golang/go/wiki/Modules),
-* Support for explicit key removal from a group. `Remove()` requests are 
-  first sent to the peer who owns the key, then the remove request is 
-  forwarded to every peer in the groupcache. NOTE: This is a best case design
-  since it is possible a temporary network disruption could occur resulting
-  in remove requests never making it their peers. In practice this scenario
-  is very rare and the system remains very consistent. In case of an
-  inconsistency placing a expiration time on your values will ensure the 
-  cluster eventually becomes consistent again.
-* Support for expired values. `SetBytes()`, `SetProto()` and `SetString()` now
-  accept an optional `time.Time` which represents a time in the future when the
-  value will expire. If you don't want expiration, pass the zero value for
-  `time.Time` (for instance, `time.Time{}`). Expiration is handled by the LRU Cache
-  when a `Get()` on a key is requested. This means no network coordination of
-  expired values is needed. However this does require that time on all nodes in the
-  cluster is synchronized for consistent expiration of values.
-* Now always populating the hotcache. A more complex algorithm is unnecessary
-  when the LRU cache will ensure the most used values remain in the cache. The
-  evict code ensures the hotcache never overcrowds the maincache.
+In addition to these [modifications](https://github.com/mailgun/groupcache?tab=readme-ov-file#modifications-from-original-library),
 * Logger interface to help add custom logging framework
 * Service Discovery to help discover other group cache automatically. At the moment the following providers are implemented:
   - the [kubernetes](https://kubernetes.io/docs/home/) [api integration](./discovery/kubernetes) is fully functional
   - the [mDNS](https://datatracker.ietf.org/doc/html/rfc6762) and [DNS-SD](https://tools.ietf.org/html/rfc6763)
   - the [NATS](https://nats.io/) [integration](./discovery/nats) is fully functional
-* Cluster boostrap to help start a group cache in cluster mode. This feature goes hand-in-hand with the service discovery.
+* `HTTPPoolOpts` is no longer exposed to the caller. It has been renamed to `httpPoolOpts`. The same applies to `HTTPPool`. This allows to start groupcache with a service discovery provider.
 * Upgrade the protocol buffer API
 
 ## Comparing Groupcache to memcached
@@ -112,7 +89,6 @@ import (
     "time"
 
     "github.com/tochemey/groupcache/v2"
-    "github.com/tochemey/groupcache/v2/cluster"
     "github.com/tochemey/groupcache/v2/discovery"
     "github.com/tochemey/groupcache/v2/discovery/kubernetes"
 )
@@ -142,13 +118,13 @@ func ExampleUsage() {
 
     // Create an instance of the cluster
     ctx := context.Background()
-    cluster := cluster.New(ctx, serviceDiscovery)
+    node := groupcache.NewNode(ctx, serviceDiscovery)
     
-    // Start the cluster
-    err := cluster.Start(ctx)
+    // Start the cluster node
+    err := node.Start(ctx)
     
-    // Stop the cluster
-    defer cluster.Stop(ctx)
+    // Stop the cluster node
+    defer node.Stop(ctx)
 	 
     // Create a new group cache with a max cache size of 3MB
     group := groupcache.NewGroup("users", 3000000, groupcache.GetterFunc(
@@ -308,7 +284,3 @@ discoOptions := discovery.Config{
 serviceDiscovery := discovery.NewServiceDiscovery(disco, discoOptions)
 // start the cluster
 ```
-
-
-### Note
-The call to `groupcache.NewHTTPPoolOpts()` is a bit misleading. `NewHTTPPoolOpts()` creates a new pool internally within the `groupcache` package where it is uitilized by any groups created. The `pool` returned is only a pointer to the internallly registered pool so the caller can update the peers in the pool as needed.

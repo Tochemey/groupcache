@@ -95,7 +95,7 @@ func TestHTTPPool(t *testing.T) {
 	wg.Wait()
 
 	// Use a dummy self address so that we don't handle gets in-process.
-	p := NewHTTPPool("should-be-ignored")
+	p := newHTTPPool("should-be-ignored")
 	p.Set(addrToURL(childAddr)...)
 
 	// Dummy getter function. Gets should go to children only.
@@ -204,7 +204,7 @@ func TestHTTPPool(t *testing.T) {
 
 	// Get a key that is guaranteed to return an internal (500) error
 	err = g.Get(ctx, "IReturnInternalError", StringSink(&value))
-	assert.Equal(t, "I am a errors.New() error", err.Error())
+	assert.Equal(t, "I am a errors.NewNode() error", err.Error())
 
 }
 
@@ -219,7 +219,7 @@ func testKeys(n int) (keys []string) {
 func beChildForTestHTTPPool(t *testing.T) {
 	addrs := strings.Split(*peerAddrs, ",")
 
-	p := NewHTTPPool("http://" + addrs[*peerIndex])
+	p := newHTTPPool("http://" + addrs[*peerIndex])
 	p.Set(addrToURL(addrs)...)
 
 	getter := GetterFunc(func(ctx context.Context, key string, dest Sink) error {
@@ -232,7 +232,7 @@ func beChildForTestHTTPPool(t *testing.T) {
 		}
 
 		if key == "IReturnInternalError" {
-			return errors.New("I am a errors.New() error")
+			return errors.New("I am a errors.NewNode() error")
 		}
 
 		if _, err := http.Get(*serverAddr); err != nil {

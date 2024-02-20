@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-// Package cluster defines the groupcache cluster mode
-package cluster
+package groupcache
 
 import (
 	"context"
@@ -27,7 +26,6 @@ import (
 
 	goset "github.com/deckarep/golang-set/v2"
 	"github.com/pkg/errors"
-	"github.com/tochemey/groupcache/v2"
 	"github.com/tochemey/groupcache/v2/consistenthash"
 	"github.com/tochemey/groupcache/v2/discovery"
 	"github.com/tochemey/groupcache/v2/log"
@@ -51,7 +49,7 @@ type Node struct {
 	logger log.Logger
 
 	// specifies the cache pool
-	pool *groupcache.HTTPPool
+	pool *httpPool
 
 	// specifies the http server
 	server *http.Server
@@ -78,8 +76,8 @@ type Node struct {
 // enforce compilation error
 var _ Interface = &Node{}
 
-// New create an instance of the cluster node
-func New(ctx context.Context, sd *discovery.ServiceDiscovery, opts ...Option) (*Node, error) {
+// NewNode create an instance of the cluster node
+func NewNode(ctx context.Context, sd *discovery.ServiceDiscovery, opts ...Option) (*Node, error) {
 	// create an instance of the Node
 	node := &Node{
 		discoveryProvider: sd.Provider(),
@@ -187,7 +185,7 @@ func (x *Node) Start(ctx context.Context) error {
 	x.peers.Append(peerURLs.ToSlice()...)
 
 	// create an instance of the cache pool
-	x.pool = groupcache.NewHTTPPoolOpts(x.self.PeerURL(), &groupcache.HTTPPoolOptions{
+	x.pool = newHTTPPoolOpts(x.self.PeerURL(), &httpPoolOptions{
 		Replicas: x.replicaCount,
 		HashFn:   x.hasher,
 		Context: func(request *http.Request) context.Context {

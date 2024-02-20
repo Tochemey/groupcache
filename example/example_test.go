@@ -1,11 +1,12 @@
-package groupcache
+package example
 
 import (
 	"context"
 	"fmt"
-
 	"log"
 	"time"
+
+	"github.com/tochemey/groupcache/v2"
 )
 
 func ExampleUsage() {
@@ -34,18 +35,18 @@ func ExampleUsage() {
 
 			// Create an instance of the cluster
 			ctx := context.Background()
-			cluster := cluster.New(ctx, serviceDiscovery)
+			node := groupcache.NewNode(ctx, serviceDiscovery)
 
 			// Start the cluster
-			err := cluster.Start(ctx)
+			err := node.Start(ctx)
 
 			// Stop the cluster
-			defer cluster.Stop(ctx)
+			defer node.Stop(ctx)
 	*/
 
 	// Create a new group cache with a max cache size of 3MB
-	group := NewGroup("users", 3000000, GetterFunc(
-		func(ctx context.Context, id string, dest Sink) error {
+	group := groupcache.NewGroup("users", 3000000, groupcache.GetterFunc(
+		func(ctx context.Context, id string, dest groupcache.Sink) error {
 
 			// In a real scenario we might fetch the value from a database.
 			/*if user, err := fetchUserFromMongo(ctx, id); err != nil {
@@ -72,7 +73,7 @@ func ExampleUsage() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	if err := group.Get(ctx, "12345", ProtoSink(&user)); err != nil {
+	if err := group.Get(ctx, "12345", groupcache.ProtoSink(&user)); err != nil {
 		log.Fatal(err)
 	}
 

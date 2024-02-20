@@ -38,21 +38,21 @@ const defaultBasePath = "/_groupcache/"
 
 const defaultReplicas = 50
 
-// HTTPPool implements PeerPicker for a pool of HTTP peers.
-type HTTPPool struct {
+// httpPool implements PeerPicker for a pool of HTTP peers.
+type httpPool struct {
 	// this peer's base URL, e.g. "https://example.net:8000"
 	self string
 
 	// opts specifies the options.
-	opts HTTPPoolOptions
+	opts httpPoolOptions
 
 	mu          sync.Mutex // guards peers and httpGetters
 	peers       *consistenthash.Map
 	httpGetters map[string]*httpGetter // keyed by e.g. "http://10.0.0.2:8008"
 }
 
-// HTTPPoolOptions are the configurations of a HTTPPool.
-type HTTPPoolOptions struct {
+// httpPoolOptions are the configurations of a httpPool.
+type httpPoolOptions struct {
 	// BasePath specifies the HTTP path that will serve groupcache requests.
 	// If blank, it defaults to "/_groupcache/".
 	BasePath string
@@ -76,28 +76,28 @@ type HTTPPoolOptions struct {
 	Context func(*http.Request) context.Context
 }
 
-// NewHTTPPool initializes an HTTP pool of peers, and registers itself as a PeerPicker.
+// newHTTPPool initializes an HTTP pool of peers, and registers itself as a PeerPicker.
 // For convenience, it also registers itself as an http.Handler with http.DefaultServeMux.
 // The self argument should be a valid base URL that points to the current server,
 // for example "http://example.net:8000".
-func NewHTTPPool(self string) *HTTPPool {
-	p := NewHTTPPoolOpts(self, nil)
+func newHTTPPool(self string) *httpPool {
+	p := newHTTPPoolOpts(self, nil)
 	http.Handle(p.opts.BasePath, p)
 	return p
 }
 
 var httpPoolMade bool
 
-// NewHTTPPoolOpts initializes an HTTP pool of peers with the given options.
-// Unlike NewHTTPPool, this function does not register the created pool as an HTTP handler.
-// The returned *HTTPPool implements http.Handler and must be registered using http.Handle.
-func NewHTTPPoolOpts(self string, o *HTTPPoolOptions) *HTTPPool {
+// newHTTPPoolOpts initializes an HTTP pool of peers with the given options.
+// Unlike newHTTPPool, this function does not register the created pool as an HTTP handler.
+// The returned *httpPool implements http.Handler and must be registered using http.Handle.
+func newHTTPPoolOpts(self string, o *httpPoolOptions) *httpPool {
 	if httpPoolMade {
-		panic("groupcache: NewHTTPPool must be called only once")
+		panic("groupcache: newHTTPPool must be called only once")
 	}
 	httpPoolMade = true
 
-	p := &HTTPPool{
+	p := &httpPool{
 		self:        self,
 		httpGetters: make(map[string]*httpGetter),
 	}
@@ -119,7 +119,7 @@ func NewHTTPPoolOpts(self string, o *HTTPPoolOptions) *HTTPPool {
 // Set updates the pool's list of peers.
 // Each peer value should be a valid base URL,
 // for example "http://example.net:8000".
-func (p *HTTPPool) Set(peers ...string) {
+func (p *httpPool) Set(peers ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.peers = consistenthash.New(p.opts.Replicas, p.opts.HashFn)
@@ -134,7 +134,7 @@ func (p *HTTPPool) Set(peers ...string) {
 }
 
 // GetAll returns all the peers in the pool
-func (p *HTTPPool) GetAll() []ProtoGetter {
+func (p *httpPool) GetAll() []ProtoGetter {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -147,7 +147,7 @@ func (p *HTTPPool) GetAll() []ProtoGetter {
 	return res
 }
 
-func (p *HTTPPool) PickPeer(key string) (ProtoGetter, bool) {
+func (p *httpPool) PickPeer(key string) (ProtoGetter, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.peers.IsEmpty() {
@@ -159,10 +159,10 @@ func (p *HTTPPool) PickPeer(key string) (ProtoGetter, bool) {
 	return nil, false
 }
 
-func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p *httpPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Parse request.
 	if !strings.HasPrefix(r.URL.Path, p.opts.BasePath) {
-		panic("HTTPPool serving unexpected path: " + r.URL.Path)
+		panic("httpPool serving unexpected path: " + r.URL.Path)
 	}
 	parts := strings.SplitN(r.URL.Path[len(p.opts.BasePath):], "/", 2)
 	if len(parts) != 2 {
@@ -259,8 +259,8 @@ type httpGetter struct {
 	baseURL      string
 }
 
-func (p *httpGetter) GetURL() string {
-	return p.baseURL
+func (h *httpGetter) GetURL() string {
+	return h.baseURL
 }
 
 var bufferPool = sync.Pool{
