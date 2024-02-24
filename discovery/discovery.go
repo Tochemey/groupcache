@@ -14,27 +14,30 @@
  * limitations under the License.
  */
 
-// Package discovery provides the interface to discover other groupcache nodes in the cluster
 package discovery
 
-import "context"
+// Discovery defines the cluster service discovery
+type Discovery struct {
+	// provider specifies the discovery provider
+	provider Provider
+	// options specifies the discovery options
+	options Options
+}
 
-// Provider helps discover other nodes in a cloud environment
-type Provider interface {
-	// ID returns the service discovery provider name
-	ID() string
-	// Initialize initializes the service discovery provider.
-	Initialize() error
-	// Register registers the service discovery provider.
-	Register() error
-	// Deregister de-registers the service discovery provider.
-	Deregister() error
-	// SetConfig registers the underlying discovery options
-	SetConfig(config Config) error
-	// DiscoverNodes returns a list discovered nodes
-	DiscoverNodes() ([]*Node, error)
-	// Watch returns event based upon node lifecycle
-	Watch(ctx context.Context) (<-chan Event, error)
-	// Close closes the provider
-	Close() error
+// New creates an instance of Discovery
+func New(provider Provider, options Options) *Discovery {
+	return &Discovery{
+		provider: provider,
+		options:  options,
+	}
+}
+
+// Provider returns the service discovery provider
+func (s Discovery) Provider() Provider {
+	return s.provider
+}
+
+// Options returns the service discovery options
+func (s Discovery) Options() Options {
+	return s.options
 }

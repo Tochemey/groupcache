@@ -58,7 +58,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service:     serviceType,
 			ServiceName: serviceName,
 			Domain:      domain,
@@ -78,7 +78,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service: serviceType,
 			Domain:  domain,
 			Port:    port,
@@ -97,7 +97,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ServiceName: serviceName,
 			Domain:      domain,
 			Port:        port,
@@ -115,7 +115,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service:     serviceType,
 			ServiceName: serviceName,
 			Domain:      domain,
@@ -134,7 +134,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service:     serviceType,
 			ServiceName: serviceName,
 			Port:        port,
@@ -154,7 +154,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service:     serviceType,
 			ServiceName: serviceName,
 			Domain:      domain,
@@ -175,7 +175,7 @@ func TestDiscovery(t *testing.T) {
 		provider := NewDiscovery()
 		provider.initialized = atomic.NewBool(true)
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service:     serviceType,
 			ServiceName: serviceName,
 			Domain:      domain,
@@ -198,7 +198,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service:     serviceType,
 			ServiceName: serviceName,
 			Domain:      domain,
@@ -225,7 +225,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service:     serviceType,
 			ServiceName: serviceName,
 			Domain:      domain,
@@ -252,7 +252,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service:     serviceType,
 			ServiceName: serviceName,
 			Domain:      domain,
@@ -298,7 +298,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Service:     service,
 			ServiceName: serviceName,
 			Domain:      domain,

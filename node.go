@@ -22,14 +22,16 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
+
+	"github.com/segmentio/fasthash/fnv1"
 
 	goset "github.com/deckarep/golang-set/v2"
 	"github.com/pkg/errors"
 	"github.com/tochemey/groupcache/v2/consistenthash"
 	"github.com/tochemey/groupcache/v2/discovery"
 	"github.com/tochemey/groupcache/v2/log"
-	"go.uber.org/atomic"
 )
 
 // Interface defines the Node interface
@@ -44,7 +46,7 @@ type Node struct {
 	// specifies the discovery provider
 	discoveryProvider discovery.Provider
 	// specifies the discovery options
-	discoveryOptions discovery.Config
+	discoveryOptions discovery.Options
 	// specifies the logger
 	logger log.Logger
 
@@ -61,8 +63,8 @@ type Node struct {
 	// specifies the list of peers
 	peers goset.Set[string]
 
-	// specifies the hasher
-	hasher consistenthash.Hash
+	// specifies the hashFn
+	hashFn consistenthash.Hash
 
 	// specifies the replica count
 	replicaCount int
@@ -70,22 +72,25 @@ type Node struct {
 	// Specifies the shutdown timeout. The default value is 30s
 	shutdownTimeout time.Duration
 
-	started *atomic.Bool
+	started  *atomic.Bool
+	basePath string
 }
 
 // enforce compilation error
 var _ Interface = &Node{}
 
 // NewNode create an instance of the cluster node
-func NewNode(ctx context.Context, sd *discovery.ServiceDiscovery, opts ...Option) (*Node, error) {
+func NewNode(ctx context.Context, sd *discovery.Discovery, opts ...Option) (*Node, error) {
 	// create an instance of the Node
 	node := &Node{
 		discoveryProvider: sd.Provider(),
-		discoveryOptions:  sd.Config(),
+		discoveryOptions:  sd.Options(),
 		logger:            log.DefaultLogger,
 		mu:                &sync.RWMutex{},
 		peers:             goset.NewSet[string](),
-		started:           atomic.NewBool(false),
+		basePath:          defaultBasePath,
+		replicaCount:      defaultReplicas,
+		hashFn:            fnv1.HashBytes64,
 	}
 	// apply the various options
 	for _, opt := range opts {
@@ -104,6 +109,7 @@ func NewNode(ctx context.Context, sd *discovery.ServiceDiscovery, opts ...Option
 	node.self = hostNode
 	// add the host to the list of peers
 	node.peers.Add(hostNode.PeerURL())
+	node.started.Store(false)
 
 	return node, nil
 }
@@ -187,7 +193,8 @@ func (x *Node) Start(ctx context.Context) error {
 	// create an instance of the cache pool
 	x.pool = newHTTPPoolOpts(x.self.PeerURL(), &httpPoolOptions{
 		Replicas: x.replicaCount,
-		HashFn:   x.hasher,
+		HashFn:   x.hashFn,
+		BasePath: x.basePath,
 		Context: func(request *http.Request) context.Context {
 			return ctx
 		},
@@ -243,7 +250,7 @@ func (x *Node) Start(ctx context.Context) error {
 	go x.handleDiscoveryEvents(memberEvents)
 
 	// set the started
-	x.started = atomic.NewBool(true)
+	x.started.Store(true)
 	return nil
 }
 
@@ -290,7 +297,7 @@ func (x *Node) Stop(ctx context.Context) error {
 	}
 
 	// set started to false
-	x.started = atomic.NewBool(false)
+	x.started.Store(false)
 	// reset the peers
 	x.peers.Clear()
 	return nil

@@ -311,7 +311,7 @@ func (d *Discovery) Deregister() error {
 }
 
 // SetConfig registers the underlying discovery configuration
-func (d *Discovery) SetConfig(config discovery.Config) error {
+func (d *Discovery) SetConfig(config discovery.Options) error {
 	// acquire the lock
 	d.mu.Lock()
 	// release the lock
@@ -450,7 +450,7 @@ func (d *Discovery) Watch(ctx context.Context) (<-chan discovery.Event, error) {
 }
 
 // setConfig sets the kubernetes option
-func (d *Discovery) setConfig(config discovery.Config) (err error) {
+func (d *Discovery) setConfig(config discovery.Options) (err error) {
 	// create an instance of option
 	option := new(option)
 	// extract the nats server address

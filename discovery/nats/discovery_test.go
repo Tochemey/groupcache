@@ -73,7 +73,7 @@ func newPeer(t *testing.T, serverAddr string) *Discovery {
 	provider := NewDiscovery()
 
 	// create the config
-	config := discovery.Config{
+	config := discovery.Options{
 		ApplicationName: applicationName,
 		Server:          serverAddr,
 		Subject:         natsSubject,
@@ -122,7 +122,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ApplicationName: applicationName,
 			Server:          natsServer,
 			Subject:         natsSubject,
@@ -142,7 +142,7 @@ func TestDiscovery(t *testing.T) {
 		provider := NewDiscovery()
 		provider.initialized = atomic.NewBool(true)
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ApplicationName: applicationName,
 			Server:          natsServer,
 			Subject:         natsSubject,
@@ -161,7 +161,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ApplicationName: applicationName,
 			Subject:         natsSubject,
 		}
@@ -176,7 +176,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ApplicationName: applicationName,
 			Server:          natsServer,
 		}
@@ -192,7 +192,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Server:  natsServer,
 			Subject: natsSubject,
 		}
@@ -223,7 +223,7 @@ func TestDiscovery(t *testing.T) {
 		provider := NewDiscovery(WithLogger(log.DiscardLogger))
 
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ApplicationName: applicationName,
 			Server:          natsServer,
 			Subject:         natsSubject,

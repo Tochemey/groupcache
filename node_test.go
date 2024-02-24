@@ -76,14 +76,14 @@ func startNode(t *testing.T, nodeName, serverAddr string) *Node {
 	provider := nats.NewDiscovery()
 
 	// create the config
-	config := discovery.Config{
+	config := discovery.Options{
 		nats.ApplicationName: applicationName,
 		nats.Server:          serverAddr,
 		nats.Subject:         natsSubject,
 	}
 
 	// create the startClusterNode
-	node, err := NewNode(ctx, discovery.NewServiceDiscovery(provider, config))
+	node, err := NewNode(ctx, discovery.New(provider, config))
 	require.NoError(t, err)
 	require.NotNil(t, node)
 

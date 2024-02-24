@@ -182,7 +182,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ApplicationName: applicationName,
 			Namespace:       namespace,
 		}
@@ -198,7 +198,7 @@ func TestDiscovery(t *testing.T) {
 		provider := NewDiscovery()
 		provider.initialized = atomic.NewBool(true)
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ApplicationName: applicationName,
 			Namespace:       namespace,
 		}
@@ -215,7 +215,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			Namespace: namespace,
 		}
 
@@ -227,7 +227,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ApplicationName: applicationName,
 		}
 
@@ -241,7 +241,7 @@ func TestDiscovery(t *testing.T) {
 		// create the instance of provider
 		provider := NewDiscovery()
 		// create the config
-		config := discovery.Config{
+		config := discovery.Options{
 			ApplicationName: applicationName,
 			Namespace:       namespace,
 		}

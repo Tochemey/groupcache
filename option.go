@@ -38,6 +38,13 @@ func (f OptionFunc) Apply(node *Node) {
 	f(node)
 }
 
+// WithReplicaCount sets the total number of replicas count
+func WithReplicaCount(count int) Option {
+	return OptionFunc(func(cl *Node) {
+		cl.replicaCount = count
+	})
+}
+
 // WithLogger sets the logger
 func WithLogger(logger log.Logger) Option {
 	return OptionFunc(func(node *Node) {
@@ -45,10 +52,10 @@ func WithLogger(logger log.Logger) Option {
 	})
 }
 
-// WithHasher sets the custom hasher
-func WithHasher(hasher consistenthash.Hash) Option {
+// WithHashFn sets the custom hash function
+func WithHashFn(hashFn consistenthash.Hash) Option {
 	return OptionFunc(func(node *Node) {
-		node.hasher = hasher
+		node.hashFn = hashFn
 	})
 }
 
@@ -56,5 +63,12 @@ func WithHasher(hasher consistenthash.Hash) Option {
 func WithShutdownTimeout(timeout time.Duration) Option {
 	return OptionFunc(func(node *Node) {
 		node.shutdownTimeout = timeout
+	})
+}
+
+// WithBasePath set the base path
+func WithBasePath(path string) Option {
+	return OptionFunc(func(node *Node) {
+		node.basePath = path
 	})
 }

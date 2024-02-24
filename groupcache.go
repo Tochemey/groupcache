@@ -42,7 +42,7 @@ import (
 type Getter interface {
 	// Get returns the value identified by key, populating dest.
 	//
-	// The returned data must be unversioned. That is, key must
+	// The returned data must be un-versioned. That is, key must
 	// uniquely describe the loaded data, without an implicit
 	// current time, and without relying on cache expiration
 	// mechanisms.
@@ -166,7 +166,7 @@ type Group struct {
 	// authoritative (otherwise they would be in mainCache), but
 	// are popular enough to warrant mirroring in this process to
 	// avoid going over the network to fetch from a peer.  Having
-	// a hotCache avoids network hotspotting, where a peer's
+	// a hotCache avoids network hot spotting, where a peer's
 	// network card could become the bottleneck on a popular key.
 	// This cache is used sparingly to maximize the total number
 	// of key/value pairs that can be stored globally.

@@ -106,7 +106,7 @@ func (d *Discovery) Initialize() error {
 }
 
 // SetConfig registers the underlying discovery configuration
-func (d *Discovery) SetConfig(meta discovery.Config) error {
+func (d *Discovery) SetConfig(meta discovery.Options) error {
 	// acquire the lock
 	d.mu.Lock()
 	// release the lock
@@ -247,7 +247,7 @@ func (d *Discovery) Close() error {
 }
 
 // setConfig sets the kubernetes discoConfig
-func (d *Discovery) setConfig(config discovery.Config) (err error) {
+func (d *Discovery) setConfig(config discovery.Options) (err error) {
 	// create an instance of option
 	option := new(option)
 	// extract the namespace
