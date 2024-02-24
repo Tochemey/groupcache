@@ -25,6 +25,7 @@ A modified version of [group cache](https://github.com/mailgun/groupcache) with 
 - upgrade the protobuf API.
 - service discovery
 - simple logger interface with a default logger based upon uber zap library
+- reorganise the proto definitions into a folder called: [protos](./protos). See how to generate the pbs [here](#protobuf-stub-generation)
    
 ### Modifications from original library
 
@@ -283,4 +284,25 @@ discoOptions := discovery.Config{
 // define the service discovery
 serviceDiscovery := discovery.NewServiceDiscovery(disco, discoOptions)
 // start the cluster
+```
+
+## Contribution
+
+Contributions are welcome!
+The project adheres to [Semantic Versioning](https://semver.org)
+and [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
+This repo uses [Earthly](https://earthly.dev/get-earthly).
+
+To contribute please:
+
+- Fork the repository
+- Create a feature branch
+- Submit a [pull request](https://help.github.com/articles/using-pull-requests)
+
+### Protobuf stub Generation
+
+To generate any proto definition add the proto definition into the [`protos`](./protos) folder and run the following command:
+
+```bash
+earthly +protogen
 ```

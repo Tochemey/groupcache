@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tochemey/groupcache/v2"
+	examplepb "github.com/tochemey/groupcache/v2/example/pb"
 )
 
 func ExampleUsage() {
@@ -53,7 +54,7 @@ func ExampleUsage() {
 				return err
 			}*/
 
-			user := User{
+			user := examplepb.User{
 				Id:      "12345",
 				Name:    "John Doe",
 				Age:     40,
@@ -68,7 +69,7 @@ func ExampleUsage() {
 		},
 	))
 
-	var user User
+	var user examplepb.User
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

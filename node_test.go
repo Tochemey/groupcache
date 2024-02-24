@@ -11,13 +11,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tochemey/groupcache/v2/discovery"
 	"github.com/tochemey/groupcache/v2/discovery/nats"
-	"github.com/tochemey/groupcache/v2/example"
+	examplepb "github.com/tochemey/groupcache/v2/example/pb"
 	"github.com/travisjeffery/go-dynaport"
 )
 
 func TestNode(t *testing.T) {
 	t.Run("With Single Node", func(t *testing.T) {
-		t.Skip()
+		t.Skip("Only one instance of httpPool can be created")
 		server := startNatsServer(t)
 		serverAddr := server.Addr().String()
 		// start node1
@@ -26,7 +26,7 @@ func TestNode(t *testing.T) {
 
 		group := NewGroup("users", 3000000, GetterFunc(
 			func(ctx context.Context, id string, dest Sink) error {
-				user := &example.User{
+				user := &examplepb.User{
 					Id:      id,
 					Name:    "test",
 					Age:     20,
@@ -37,7 +37,7 @@ func TestNode(t *testing.T) {
 			},
 		))
 
-		user := new(example.User)
+		user := new(examplepb.User)
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*500)
 		defer cancel()

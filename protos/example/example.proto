@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package example;
 
-option go_package = ".;example";
+option go_package = ".;examplepb";
 
 message User {
   string id = 1;
