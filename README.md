@@ -6,6 +6,8 @@ groupcache is a caching and cache-filling library, intended as a replacement for
 
 For API docs and examples, see http://godoc.org/github.com/tochemey/groupcache/v2
 
+# Note: This repository is made readonly. The new features will be handled in this new [repo](https://github.com/groupcache/groupcache-go)
+
 ## Table of Content
 
 - [Overview](#overview)
